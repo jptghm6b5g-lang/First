@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#111214">
+<title>a7v Tether</title>
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-live" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8 15.5a5.5 5.5 0 0 1 8 0"/><circle cx="12" cy="19" r="1"/><path d="M2 9.5a14.5 14.5 0 0 1 20 0"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+  <symbol id="i-log" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v11H3z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3v9"/><path d="M6.3 6.3a8 8 0 1 0 11.4 0"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-dice" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r=".8"/><circle cx="15" cy="15" r=".8"/><circle cx="15" cy="9" r=".8"/><circle cx="9" cy="15" r=".8"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></symbol>
+  <symbol id="i-lr" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 8v8h4M14 16v-5h2.5a1.5 1.5 0 0 1 0 3H14m2 0l2 2"/></symbol>
+</svg>
+
+<div class="shell">
+  <nav class="sidebar" aria-label="Hauptnavigation">
+    <div class="brand">
+      <img src="/icon.svg" alt="" width="28" height="28">
+      <div><strong>a7v Tether</strong><small>α7 V → Lightroom</small></div>
+    </div>
+    <a href="#live" data-view="live"><svg><use href="#i-live"/></svg><span>Live</span></a>
+    <a href="#history" data-view="history"><svg><use href="#i-history"/></svg><span>Verlauf</span></a>
+    <a href="#camera" data-view="camera" data-local><svg><use href="#i-camera"/></svg><span>Kamera</span></a>
+    <a href="#settings" data-view="settings" data-local><svg><use href="#i-settings"/></svg><span>Einstellungen</span></a>
+    <a href="#log" data-view="log"><svg><use href="#i-log"/></svg><span>Protokoll</span></a>
+    <div class="sidebar-foot" data-local>
+      <button class="btn ghost small" id="btn-shutdown" title="App beenden"><svg><use href="#i-power"/></svg><span>Beenden</span></button>
+      <small id="version"></small>
+    </div>
+  </nav>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="session">
+        <label for="session-name">Session</label>
+        <div class="session-row">
+          <input id="session-name" maxlength="80" spellcheck="false" aria-label="Session-Name">
+          <button class="btn ghost icon" id="btn-new-session" title="Neue Session starten"><svg><use href="#i-plus"/></svg></button>
+        </div>
+      </div>
+      <div class="pills">
+        <span class="pill" id="pill-ftp"><i></i><span>FTP</span></span>
+        <span class="pill" id="pill-camera"><i></i><span>Kamera</span></span>
+        <span class="pill" id="pill-lr"><i></i><span>Lightroom</span></span>
+      </div>
+      <button class="btn" id="btn-pause"><svg><use href="#i-pause"/></svg><span>Pausieren</span></button>
+    </header>
+
+    <div class="banner" id="conn-banner" hidden>Verbindung zur App unterbrochen – verbinde neu …</div>
+
+    <!-- LIVE -->
+    <section class="view" id="view-live" aria-labelledby="h-live">
+      <h1 id="h-live" class="sr-only">Live</h1>
+      <div class="kpis">
+        <div class="kpi"><small>Bilder in Session</small><strong id="k-session">–</strong><span id="k-session-sub"></span></div>
+        <div class="kpi"><small>Heute</small><strong id="k-today">–</strong><span id="k-total"></span></div>
+        <div class="kpi"><small>Datenmenge</small><strong id="k-bytes">–</strong><span id="k-avg"></span></div>
+        <div class="kpi"><small>WLAN-Tempo</small><strong id="k-speed">–</strong><span id="k-upload"></span></div>
+        <div class="kpi"><small>Freier Speicher</small><strong id="k-disk">–</strong><span id="k-disk-sub"></span></div>
+      </div>
+
+      <div class="live-grid">
+        <article class="hero card" id="hero">
+          <div class="hero-img" id="hero-img">
+            <div class="empty-state" id="hero-empty">
+              <svg><use href="#i-live"/></svg>
+              <p><strong>Warte auf das erste Bild</strong><br>Löse an der Kamera aus – das Foto erscheint hier und in Lightroom.</p>
+            </div>
+          </div>
+          <footer class="hero-meta" id="hero-meta" hidden>
+            <div class="hero-title"><strong id="hero-name"></strong><span id="hero-sub"></span></div>
+            <dl class="exif" id="hero-exif"></dl>
+          </footer>
+        </article>
+
+        <aside class="side">
+          <div class="card" id="card-warnings" hidden><ul class="warnings" id="warnings"></ul></div>
+          <div class="card">
+            <h2>Übertragung</h2>
+            <div id="uploads"><p class="muted">Keine laufende Übertragung</p></div>
+          </div>
+          <div class="card">
+            <h2>Aktivität <small class="muted">letzte 60 Minuten</small></h2>
+            <svg class="spark" id="spark" viewBox="0 0 300 64" preserveAspectRatio="none" role="img" aria-label="Bilder pro Minute"></svg>
+            <div class="spark-legend"><span>−60 min</span><span id="spark-max"></span><span>jetzt</span></div>
+          </div>
+          <div class="card">
+            <h2>Verbindung</h2>
+            <dl class="kv" id="conn-info"></dl>
+          </div>
+        </aside>
+      </div>
+
+      <div class="section-head">
+        <h2>Zuletzt empfangen</h2>
+        <a href="#history" class="link">Alle anzeigen</a>
+      </div>
+      <div class="strip" id="strip"></div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="view" id="view-history" hidden>
+      <div class="toolbar">
+        <h1>Verlauf</h1>
+        <input type="search" id="h-q" placeholder="Suchen: Datei, Objektiv, Kamera …" aria-label="Verlauf durchsuchen">
+        <select id="h-status" aria-label="Status filtern">
+          <option value="">Alle Status</option>
+          <option value="imported">An Lightroom übergeben</option>
+          <option value="held">Wartend (Pause)</option>
+          <option value="duplicate">Duplikat</option>
+          <option value="ignored">Nicht übergeben</option>
+          <option value="failed">Fehler</option>
+        </select>
+        <select id="h-session" aria-label="Session filtern"><option value="">Alle Sessions</option></select>
+        <a class="btn ghost" id="h-export" href="/api/transfers.csv" download><svg><use href="#i-download"/></svg><span>CSV</span></a>
+      </div>
+      <div class="card table-card">
+        <table class="table">
+          <thead><tr><th></th><th>Zeit</th><th>Datei</th><th class="hide-sm">Aufnahme</th><th class="num hide-sm">Größe</th><th class="num hide-sm">Upload</th><th>Status</th></tr></thead>
+          <tbody id="h-rows"></tbody>
+        </table>
+        <div class="empty-state small" id="h-empty" hidden><p>Keine Einträge</p></div>
+      </div>
+      <div class="pager"><button class="btn ghost" id="h-prev">Zurück</button><span id="h-page"></span><button class="btn ghost" id="h-next">Weiter</button></div>
+    </section>
+
+    <!-- CAMERA SETUP -->
+    <section class="view" id="view-camera" hidden>
+      <div class="toolbar"><h1>Kamera einrichten</h1>
+        <button class="btn primary" id="btn-selftest"><svg><use href="#i-check"/></svg><span>Selbsttest</span></button>
+      </div>
+      <div class="card" id="selftest-card" hidden><h2>Selbsttest</h2><ul class="checks" id="selftest"></ul></div>
+      <ol class="steps">
+        <li class="card">
+          <h2>WLAN verbinden</h2>
+          <p>An der α7 V: <b>Menü → Netzwerk → Wi-Fi → Zugangspunkt-Einstellungen</b> und dasselbe WLAN wählen, in dem dieser Rechner ist. 5 GHz ist deutlich schneller.</p>
+          <p class="muted">Kein Router vor Ort? Den mobilen Hotspot des Laptops einschalten und die Kamera damit verbinden.</p>
+        </li>
+        <li class="card">
+          <h2>FTP-Server eintragen</h2>
+          <p><b>Menü → Netzwerk → FTP-Übertragungsfunktion → Servereinstellung → Server 1</b></p>
+          <dl class="kv big" id="cam-values"></dl>
+        </li>
+        <li class="card" id="cam-tls" hidden>
+          <h2>Root-Zertifikat importieren (FTPS)</h2>
+          <p><a class="btn ghost small" href="/api/tls/cacert.pem" download><svg><use href="#i-download"/></svg><span>cacert.pem herunterladen</span></a></p>
+          <p>Die Datei in das Hauptverzeichnis der Speicherkarte kopieren, Karte einsetzen und an der Kamera <b>Netzwerk → … → Root-Zertifikat importieren</b> wählen. Danach in der Servereinstellung <b>Sicheres Protokoll: Ein</b> setzen.</p>
+        </li>
+        <li class="card">
+          <h2>Automatische Übertragung einschalten</h2>
+          <ul class="bullets">
+            <li><b>FTP-Funktion:</b> Ein</li>
+            <li><b>Autom. FTP-Übertragung:</b> Ein – jedes Bild wird direkt nach der Aufnahme gesendet</li>
+            <li><b>Zu übertragender Dateityp:</b> RAW, JPEG/HEIF oder RAW+JPEG</li>
+            <li><b>Energiesparmodus</b> beim Shooting verlängern, damit das WLAN nicht abschaltet</li>
+          </ul>
+        </li>
+        <li class="card">
+          <h2>Lightroom Classic vorbereiten</h2>
+          <ol class="bullets">
+            <li><b>Datei → Automatisch importieren → Einstellungen für automatischen Import …</b></li>
+            <li>Überwachter Ordner: <code id="lr-watch"></code> <button class="btn ghost icon small" data-copy-from="lr-watch" title="Kopieren"><svg><use href="#i-copy"/></svg></button></li>
+            <li>Ziel, Dateibenennung, Entwicklungs-Preset und Stichwörter nach Wunsch wählen</li>
+            <li><b>Datei → Automatisch importieren → Automatischen Import aktivieren</b> anhaken</li>
+          </ol>
+          <p class="muted">Diese App erkennt, ob Lightroom die Bilder abholt, und warnt dich, wenn nicht.</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="view" id="view-settings" hidden>
+      <div class="toolbar"><h1>Einstellungen</h1></div>
+      <form id="settings-form" novalidate autocomplete="off">
+        <div class="settings-grid">
+          <fieldset class="card">
+            <legend>Verbindung (FTP)</legend>
+            <div class="row2">
+              <label class="field"><span>Port</span><input name="ftp_port" type="number" min="1" max="65535"><em data-err="ftp_port"></em><small>Standard 21. Unter macOS ohne Adminrechte z. B. 2121.</small></label>
+              <label class="field"><span>Netzwerk-Adresse</span><input name="ftp_host" spellcheck="false"><em data-err="ftp_host"></em><small>0.0.0.0 = alle Netzwerke</small></label>
+            </div>
+            <div class="row2">
+              <label class="field"><span>Benutzername</span><input name="ftp_user" spellcheck="false"><em data-err="ftp_user"></em></label>
+              <label class="field"><span>Passwort</span>
+                <span class="input-group"><input name="ftp_password" type="password" spellcheck="false">
+                  <button type="button" class="btn ghost icon" data-toggle-pw="ftp_password" title="Anzeigen"><svg><use href="#i-eye"/></svg></button>
+                  <button type="button" class="btn ghost icon" id="btn-gen-pw" title="Zufallspasswort"><svg><use href="#i-dice"/></svg></button></span>
+                <em data-err="ftp_password"></em></label>
+            </div>
+            <div class="row2">
+              <label class="field"><span>Passiv-Ports von</span><input name="passive_port_min" type="number"><em data-err="passive_port_min"></em></label>
+              <label class="field"><span>bis</span><input name="passive_port_max" type="number"><em data-err="passive_port_max"></em></label>
+            </div>
+            <label class="switch"><input type="checkbox" name="autostart_ftp"><span></span>FTP-Server beim Start automatisch starten</label>
+            <div class="btn-row">
+              <button type="button" class="btn ghost small" data-ftp="restart">FTP neu starten</button>
+              <button type="button" class="btn ghost small" data-ftp="stop">Stoppen</button>
+              <button type="button" class="btn ghost small" data-ftp="start">Starten</button>
+            </div>
+          </fieldset>
+
+          <fieldset class="card">
+            <legend>Sicherheit</legend>
+            <label class="switch"><input type="checkbox" name="tls_enabled"><span></span>Verschlüsselt übertragen (FTPS)</label>
+            <div class="tls-box" id="tls-box">
+              <p id="tls-info" class="muted"></p>
+              <div class="btn-row">
+                <button type="button" class="btn ghost small" id="btn-tls-gen">Zertifikat erzeugen</button>
+                <a class="btn ghost small" href="/api/tls/cacert.pem" download id="btn-tls-dl"><svg><use href="#i-download"/></svg><span>cacert.pem</span></a>
+              </div>
+              <em data-err="tls_enabled"></em>
+            </div>
+            <label class="field"><span>Nur diese Kameras zulassen</span><textarea name="allowed_ips" rows="2" placeholder="leer = alle · z. B. 192.168.1.50 oder 192.168.1.0/24" spellcheck="false"></textarea><em data-err="allowed_ips"></em><small>Kommagetrennte IP-Adressen oder Netze</small></label>
+          </fieldset>
+
+          <fieldset class="card wide">
+            <legend>Ordner</legend>
+            <label class="field"><span>Lightroom-Überwachungsordner</span>
+              <span class="input-group"><input name="watch_dir" spellcheck="false"><button type="button" class="btn ghost" data-pick="watch_dir">Wählen …</button><button type="button" class="btn ghost icon" data-open="watch" title="Im Explorer/Finder öffnen"><svg><use href="#i-folder"/></svg></button></span>
+              <em data-err="watch_dir"></em><small>Genau diesen Ordner in Lightroom unter „Automatisch importieren“ eintragen. Er muss beim Einrichten leer sein.</small></label>
+            <label class="field"><span>Eingangsordner (laufende Uploads)</span>
+              <span class="input-group"><input name="staging_dir" spellcheck="false" id="staging-input"><button type="button" class="btn ghost" data-pick="staging_dir">Wählen …</button><button type="button" class="btn ghost icon" data-open="staging" title="Öffnen"><svg><use href="#i-folder"/></svg></button></span>
+              <em data-err="staging_dir"></em><small>Leer = automatisch neben dem Überwachungsordner (gleiches Laufwerk, schnellste Übergabe).</small></label>
+            <div class="row2">
+              <label class="field"><span>Sicherungskopie (optional)</span>
+                <span class="input-group"><input name="backup_dir" spellcheck="false" placeholder="leer = keine Sicherung"><button type="button" class="btn ghost" data-pick="backup_dir">Wählen …</button><button type="button" class="btn ghost icon" data-open="backup" title="Öffnen"><svg><use href="#i-folder"/></svg></button></span>
+                <em data-err="backup_dir"></em><small>Am besten auf einem zweiten Laufwerk.</small></label>
+              <label class="field"><span>Unterordner der Sicherung</span><input name="backup_structure" spellcheck="false"><em data-err="backup_structure"></em><small class="preview" id="backup-preview"></small></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="card wide">
+            <legend>Import</legend>
+            <div class="field"><span>An Lightroom übergeben</span>
+              <div class="chips" id="ext-chips"></div><em data-err="extensions"></em>
+              <small>Andere Dateien werden angenommen, gesichert und angezeigt, aber nicht an Lightroom übergeben.</small></div>
+            <label class="switch"><input type="checkbox" name="rename_enabled"><span></span>Dateien vor der Übergabe umbenennen</label>
+            <div class="rename" id="rename-box">
+              <label class="field"><span>Namensmuster</span><input name="rename_pattern" spellcheck="false"><em data-err="rename_pattern"></em>
+                <span class="tokens" id="tokens"></span><small class="preview" id="rename-preview"></small></label>
+              <p class="muted small">RAW und JPEG derselben Aufnahme erhalten automatisch denselben Namen, damit Lightroom sie als Paar erkennt.</p>
+            </div>
+            <div class="row2">
+              <label class="field"><span>Doppelt gesendete Bilder</span>
+                <select name="duplicate_policy"><option value="skip">Überspringen (identischer Inhalt)</option><option value="rename">Trotzdem übergeben</option></select></label>
+              <label class="field"><span>Lightroom-Warnung nach (Sekunden)</span><input name="lightroom_timeout_s" type="number" min="5" max="3600"><em data-err="lightroom_timeout_s"></em></label>
+            </div>
+            <label class="field narrow"><span>Warnen unter (GB frei)</span><input name="min_free_gb" type="number" step="0.5" min="0"><em data-err="min_free_gb"></em></label>
+          </fieldset>
+
+          <fieldset class="card">
+            <legend>Weboberfläche</legend>
+            <label class="switch"><input type="checkbox" name="open_browser"><span></span>Beim Start im Browser öffnen</label>
+            <label class="switch"><input type="checkbox" name="web_remote"><span></span>Vom Handy im WLAN erreichbar (nur ansehen)</label>
+            <div class="row2">
+              <label class="field"><span>PIN für Handy</span><input name="web_pin" spellcheck="false" inputmode="numeric"><em data-err="web_pin"></em></label>
+              <label class="field"><span>Port</span><input name="web_port" type="number"><em data-err="web_port"></em></label>
+            </div>
+            <small class="muted" id="remote-url"></small>
+          </fieldset>
+
+          <fieldset class="card">
+            <legend>Dieses Gerät</legend>
+            <label class="field"><span>Erscheinungsbild</span>
+              <select id="pref-theme"><option value="">Wie System</option><option value="dark">Dunkel</option><option value="light">Hell</option></select></label>
+            <label class="switch"><input type="checkbox" id="pref-sound"><span></span>Ton bei jedem neuen Bild</label>
+            <label class="switch"><input type="checkbox" id="pref-notify"><span></span>Desktop-Benachrichtigung, wenn Fenster im Hintergrund</label>
+            <p class="muted small" id="data-dir"></p>
+          </fieldset>
+        </div>
+
+        <div class="savebar" id="savebar" hidden>
+          <span>Ungespeicherte Änderungen</span>
+          <button type="button" class="btn ghost" id="btn-discard">Verwerfen</button>
+          <button type="submit" class="btn primary" id="btn-save">Speichern</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- LOG -->
+    <section class="view" id="view-log" hidden>
+      <div class="toolbar">
+        <h1>Protokoll</h1>
+        <div class="seg" id="log-level" role="group" aria-label="Filter">
+          <button type="button" data-level="" class="on">Alle</button>
+          <button type="button" data-level="WARNING">Warnungen</button>
+          <button type="button" data-level="ERROR">Fehler</button>
+          <button type="button" data-level="DEBUG">Details</button>
+        </div>
+        <input type="search" id="log-q" placeholder="Filtern …" aria-label="Protokoll filtern">
+        <label class="switch compact"><input type="checkbox" id="log-follow" checked><span></span>Mitlaufen</label>
+      </div>
+      <div class="card log" id="log"></div>
+    </section>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Bildansicht">
+  <button class="btn ghost icon lb-close" id="lb-close" title="Schließen (Esc)"><svg><use href="#i-x"/></svg></button>
+  <button class="btn ghost icon lb-prev" id="lb-prev" title="Vorheriges (←)"><svg><use href="#i-left"/></svg></button>
+  <figure><img id="lb-img" alt=""><figcaption id="lb-cap"></figcaption></figure>
+  <button class="btn ghost icon lb-next" id="lb-next" title="Nächstes (→)"><svg><use href="#i-right"/></svg></button>
+</div>
+
+<div class="login" id="login" hidden>
+  <form class="card" id="login-form">
+    <img src="/icon.svg" alt="" width="40" height="40">
+    <h1>a7v Tether</h1>
+    <p class="muted">PIN eingeben (steht am Rechner unter Einstellungen → Weboberfläche)</p>
+    <input id="login-pin" inputmode="numeric" autocomplete="one-time-code" aria-label="PIN">
+    <button class="btn primary" type="submit">Verbinden</button>
+    <em id="login-err"></em>
+  </form>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="/app.js"></script>
+</body>
+</html>

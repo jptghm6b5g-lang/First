@@ -1,11 +1,10 @@
 @echo off
-rem Sony a7 V -> Lightroom Classic WLAN-Tethering (Windows)
+rem a7v Tether - Sony a7 V -> Lightroom Classic (Windows)
 cd /d "%~dp0"
 if not exist .venv (
-    echo Erstelle Python-Umgebung ...
-    py -3 -m venv .venv || python -m venv .venv || (echo Python 3 nicht gefunden: https://www.python.org/downloads/ & pause & exit /b 1)
-    .venv\Scripts\python -m pip install --quiet -r requirements.txt
+    echo Einmalige Einrichtung ...
+    py -3 -m venv .venv 2>nul || python -m venv .venv || (echo Python 3 nicht gefunden: https://www.python.org/downloads/ & pause & exit /b 1)
 )
-if not exist config.toml copy config.example.toml config.toml >nul
+.venv\Scripts\python -m pip install --quiet --disable-pip-version-check -r requirements.txt
 .venv\Scripts\python -m a7v_tether %*
 pause

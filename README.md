@@ -1,118 +1,132 @@
-# α7 V → Lightroom Classic: WLAN-Tethering mit Live-Import
+# a7v Tether: Sony α7 V → Lightroom Classic, kabellos und live
 
-Jedes Foto, das du mit der Sony α7 V machst, erscheint wenige Sekunden später
-in Lightroom Classic – **ohne Kabel**.
+Jedes Foto, das du mit der α7 V machst, landet Sekunden später in Lightroom
+Classic, **ohne Kabel**. Dazu gibt es eine Oberfläche im Browser mit
+Live-Vorschau, Verlauf, Kamera-Assistent und allen Einstellungen.
 
 ```
- Sony α7 V ──WLAN/FTP──▶  a7v-tether (FTP-Server)  ──▶  Überwachter Ordner  ──▶  Lightroom Classic
- (Auto-FTP-Übertragung)    auf deinem Rechner          (fertige Dateien)          "Automatisch importieren"
+ α7 V ──WLAN (FTP/FTPS)──▶ a7v Tether ──▶ überwachter Ordner ──▶ Lightroom Classic
+ Autom. FTP-Übertragung     · Sicherungskopie   (nur fertige Dateien)   „Automatisch importieren“
+                            · Duplikat-Filter
+                            · Umbenennen
+                            · Pause/Sammeln
+                            · Live-Dashboard ◀── Browser / Handy
 ```
 
-## Warum so?
+Lightroom Classic kann Sony-Kameras nur per USB tethern. Die α7 V hat aber eine
+eingebaute **FTP-Übertragung**: Sie sendet jedes Bild direkt nach der Aufnahme
+im Hintergrund. a7v Tether nimmt diese Bilder entgegen. Erst wenn eine Datei
+**vollständig** angekommen ist, legt es sie in den Ordner, den Lightroom
+überwacht.
 
-Lightroom Classic kann Sony-Kameras nur **per USB** tethern. Die α7 V hat aber
-eine eingebaute **FTP-Übertragung**: Sie schickt jedes Bild direkt nach der
-Aufnahme im Hintergrund per WLAN an einen FTP-Server. Dieses Projekt ist dieser
-Server. Er legt jede Datei erst dann in den Lightroom-Ordner, **wenn sie
-vollständig übertragen ist**. So importiert Lightroom keine halben RAWs, und
-abgebrochene Übertragungen werden verworfen.
+## Funktionen
 
-## Voraussetzungen
+| | |
+|---|---|
+| **Live-Ansicht** | Großes Vorschaubild mit Belichtung, Blende, ISO, Brennweite und Objektiv. Dazu ein Filmstreifen, eine Lightbox (Pfeiltasten) und die Übertragungen mit Tempo. |
+| **Lightroom-Kontrolle** | Erkennt, ob Lightroom die Bilder wirklich abholt, und warnt, wenn der Auto-Import aus ist. |
+| **Pause / Sammeln** | Bilder werden empfangen und gesichert, aber erst auf Knopfdruck an Lightroom gegeben. Gesammelte Bilder bleiben auch nach einem Neustart erhalten. |
+| **Sessions** | Ein Name pro Shooting, z. B. „Hochzeit Müller“. Wird für Statistik, Umbenennung und Sicherungsordner verwendet. |
+| **Umbenennen** | Muster wie `{date}_{session}_{seq}`. RAW und JPEG einer Aufnahme behalten denselben Namen, damit Lightroom das Paar erkennt. |
+| **Sicherungskopie** | Jede Datei zusätzlich auf ein zweites Laufwerk, z. B. in `Sicherung/{session}/{date}/`. |
+| **Duplikat-Filter** | Sendet die Kamera ein Bild erneut, wird es am Inhalt erkannt und übersprungen. |
+| **Dateitypen** | Auswahl, was an Lightroom geht (ARW, JPG, HIF …). Alles andere wird nur gesichert. |
+| **Verlauf** | Alle Übertragungen mit Suche, Filtern und **CSV-Export** für Excel. |
+| **Kamera-Assistent** | Zeigt genau die Werte, die du in der Kamera einträgst. Mit **Selbsttest** für Ordner, Port, Anmeldung, Datenkanal und Speicherplatz. |
+| **FTPS** | Verschlüsselte Übertragung mit eigenem Zertifikat, auf Knopfdruck erzeugt. |
+| **Sicherheit** | Freigabeliste für Kamera-IPs, lokale Oberfläche mit Schutz vor fremden Webseiten (CSRF und DNS-Rebinding). |
+| **Handy-Ansicht** | Optional im WLAN mit PIN erreichbar, nur zum Zuschauen, Pausieren und für Session-Wechsel. |
+| **Benachrichtigungen** | Ton bei jedem Bild, Desktop-Benachrichtigung, Warnung bei wenig Speicherplatz. |
+| **Kamera-Simulator** | Testet die ganze Kette mit Lightroom auch ohne Kamera. |
+| **Hell / Dunkel** | Folgt dem System oder wird fest eingestellt. |
 
-- Windows 10/11 oder macOS, **Python 3.9+** ([python.org](https://www.python.org/downloads/))
-- Lightroom Classic in einer Version, die die RAW-Dateien der α7 V unterstützt
-- Kamera und Rechner im selben WLAN (Router oder Hotspot des Laptops)
+## Installation & Start
 
-## 1. Server starten
+Voraussetzung: **Python 3.9+** von [python.org](https://www.python.org/downloads/).
+Unter Windows bei der Installation „Add Python to PATH“ anhaken.
 
 | System  | Start |
 |---------|-------|
 | Windows | `start_windows.bat` doppelklicken |
 | macOS   | `start_macos.command` doppelklicken (beim ersten Mal: Rechtsklick → Öffnen) |
 
-Beim ersten Start wird alles automatisch eingerichtet, und eine `config.toml`
-wird angelegt. **Ändere dort das Passwort** und bei Bedarf den Ordner. Danach
-siehst du:
+Beim ersten Start wird alles eingerichtet, danach öffnet sich die App im Browser
+(`http://127.0.0.1:8765`). Erlaube die Firewall-Abfrage für **private
+Netzwerke**.
+
+## In 3 Schritten einsatzbereit
+
+1. **Kamera:** In der App unter **Kamera** stehen alle Werte zum Abtippen:
+   *Menü → Netzwerk → FTP-Übertragungsfunktion → Servereinstellung*.
+   Danach **FTP-Funktion** und **Autom. FTP-Übertragung** einschalten.
+2. **Lightroom:** *Datei → Automatisch importieren → Einstellungen …*, den in
+   der App angezeigten Ordner als „Überwachter Ordner“ eintragen, dann
+   *Automatischen Import aktivieren* anhaken.
+3. **Selbsttest** klicken, auslösen, fertig.
+
+> Tipp: Reserviere im Router eine feste IP für deinen Rechner, dann musst du in
+> der Kamera nie wieder etwas ändern. Ohne Router geht es auch über den
+> mobilen Hotspot des Laptops.
+
+Die Menünamen der Kamera können je nach Firmware leicht abweichen.
+
+## Testen ohne Kamera
 
 ```
-  In der Kamera eintragen:  Host 192.168.1.23   Port 21
-                            Benutzer 'a7v'   Passwort 'lightroom'
-  Lightroom-Überwachungsordner: C:\Users\du\Pictures\Lightroom-Watch
+.venv/bin/python -m a7v_tether.simulate --port 21 --password DEIN_PASSWORT --count 10
 ```
 
-Erlaubt die Firewall-Abfrage für **private Netzwerke**. Falls nötig, gib manuell
-TCP-Port **21** und **60000–60100** frei.
+(Windows: `.venv\Scripts\python …`.) Der Simulator sendet echte JPEGs mit
+EXIF-Daten per FTP. Sie erscheinen in der App und werden von Lightroom
+importiert.
 
-> Tipp: Reserviere im Router eine feste IP für deinen Rechner. Dann musst du
-> in der Kamera nie wieder etwas ändern.
+## Verschlüsselung (FTPS)
 
-## 2. Lightroom Classic einrichten (einmalig)
+1. **Einstellungen → Sicherheit → Zertifikat erzeugen**
+2. `cacert.pem` herunterladen, ins Hauptverzeichnis der Speicherkarte kopieren
+   und in der Kamera als Root-Zertifikat importieren
+3. In der App „Verschlüsselt übertragen“ einschalten und in der Kamera
+   **Sicheres Protokoll: Ein** setzen
 
-1. **Datei → Automatisch importieren → Einstellungen für automatischen Import …**
-2. **Überwachter Ordner:** den angezeigten Ordner wählen (`…/Lightroom-Watch`). Er muss leer sein.
-3. **Ziel:** wohin Lightroom die Bilder verschieben soll, z. B. `Bilder/Shooting-2026-11-14`.
-4. Optional: Dateibenennung, **Entwicklungseinstellungen** (Preset wird live angewendet), Metadaten und Stichwörter.
-5. **Datei → Automatisch importieren → Automatischen Import aktivieren** anhaken.
-
-## 3. Kamera einrichten (einmalig)
-
-Die Menünamen können sich je nach Firmware leicht unterscheiden. Du findest sie
-unter **Menü → Netzwerk**.
-
-1. **WLAN verbinden:** *Wi-Fi → Zugangspunkt-Einstellungen* → dein WLAN wählen (5 GHz ist schneller).
-2. **FTP-Übertragungsfunktion → Servereinstellung → Server 1:**
-   - Hostname: die angezeigte IP, z. B. `192.168.1.23`
-   - Sicheres Protokoll: **Aus**
-   - Port: `21`, also derselbe wie in `config.toml`
-   - Benutzername und Passwort: wie angezeigt
-   - Passivmodus: **Ein**
-   - Verzeichnis: leer lassen (das Programm nimmt jedes Verzeichnis an)
-3. **FTP-Funktion: Ein**
-4. **Automatische FTP-Übertragung: Ein** (überträgt sofort nach jeder Aufnahme)
-5. **Zu übertragender Dateityp:** RAW, JPEG/HEIF oder RAW+JPEG, je nach Wunsch
-
-Jetzt auslösen. Im Fenster erscheint `→ Lightroom: DSC01234.ARW`, und kurz
-danach ist das Bild in Lightroom.
-
-## Konfiguration
-
-Alles steht in `config.toml` (Vorlage: `config.example.toml`). Jede Einstellung
-lässt sich auch beim Start überschreiben:
-
-```
-python -m a7v_tether --port 2121 --watch-dir "D:\LR-Watch" --backup-dir "D:\Backup" --extensions ARW
-```
-
-| Option | Bedeutung |
-|---|---|
-| `watch_dir` | Ordner, den Lightroom überwacht |
-| `staging_dir` | Eingangsordner für laufende Uploads (Standard: `<watch_dir>-Eingang`, gleiche Festplatte) |
-| `backup_dir` | Optional: zusätzliche Kopie jeder Datei, falls Lightroom einmal nicht läuft |
-| `extensions` | Welche Dateitypen an Lightroom gehen. Andere, z. B. Videos, bleiben im Eingangsordner. |
-| `port` | FTP-Port. Unter macOS/Linux ohne Adminrechte einen Port ≥ 1024 wählen, z. B. 2121, und in der Kamera eintragen. |
+Das Zertifikat gilt für die aktuellen IP-Adressen des Rechners. Ändert sich die
+IP, erneuere es. Die Kamera vertraut weiter, weil die Root-CA gleich bleibt.
 
 ## Fehlersuche
 
 | Problem | Lösung |
 |---|---|
-| Kamera meldet „Verbindung zum Server fehlgeschlagen“ | IP und Port prüfen, Firewall freigeben, beide Geräte im selben WLAN? Gäste-WLANs blockieren Geräte untereinander oft. |
-| „Anmeldung fehlgeschlagen“ im Fenster | Benutzername und Passwort in der Kamera stimmen nicht mit `config.toml` überein. |
-| Datei kommt an, aber nicht in Lightroom | Ist „Automatischen Import aktivieren“ angehakt? Unterstützt deine Lightroom-Version die α7-V-RAWs (Hilfe → Nach Updates suchen)? |
-| Übertragung bricht ab | Kamera näher an den Router, 5 GHz nutzen, Energiesparmodus der Kamera verlängern. Abgebrochene Dateien werden verworfen. Die Kamera wiederholt sie. |
-| Port 21 lässt sich nicht öffnen | Ein anderes Programm nutzt ihn, oder es fehlen Rechte. Nimm `--port 2121` und trage den Port in der Kamera ein. |
+| Kamera: „Verbindung zum Server fehlgeschlagen“ | IP und Port vergleichen. Firewall für TCP 21 und 60000–60100 freigeben. Gäste-WLANs blockieren Geräte untereinander oft. |
+| Protokoll: „Anmeldung fehlgeschlagen“ | Benutzer oder Passwort in der Kamera stimmen nicht. |
+| Pill „Lightroom reagiert nicht“ | Lightroom öffnen und *Automatischen Import aktivieren* anhaken. Unterstützt deine Lightroom-Version die α7-V-RAWs? |
+| „Port 21 benötigt Administratorrechte“ | Port 2121 einstellen und in der Kamera eintragen. |
+| Übertragung bricht ab | Näher an den Router, 5 GHz nutzen, Energiesparen der Kamera verlängern. Abgebrochene Dateien werden verworfen, die Kamera sendet sie erneut. |
+| Weboberfläche nicht erreichbar | Port 8765 belegt? Die App nimmt automatisch den nächsten freien Port, siehe Konsolenfenster. |
 
-## Sicherheit
+## Für Fortgeschrittene
 
-FTP überträgt Bilder und Passwort **unverschlüsselt**. Nutze die Lösung nur in
-deinem eigenen bzw. vertrauenswürdigen Netz oder im Laptop-Hotspot, nicht in
-öffentlichen WLANs.
+```
+python -m a7v_tether --help
+  --data-dir PFAD   Einstellungen, Verlauf, Vorschauen (Standard: Benutzer-Konfigordner)
+  --port N          FTP-Port   --watch-dir PFAD   Lightroom-Ordner
+  --web-port N      Port der Oberfläche   --no-browser   --headless   -v
+```
 
-## Entwicklung
+Einstellungen liegen als `settings.json`, der Verlauf als SQLite-Datenbank im
+Datenordner (Windows `%APPDATA%\a7v-tether`, macOS
+`~/Library/Application Support/a7v-tether`).
+
+**Aufbau:** `server.py` (FTP), `importer.py` (Übergabe, Sicherung,
+Duplikate, Pause, Lightroom-Kontrolle), `metadata.py` (EXIF und Vorschau aus
+ARW/JPG ohne Zusatzpakete), `webui.py` + `static/` (Oberfläche, API,
+Live-Ereignisse), `history.py` (Verlauf), `tls.py` (Zertifikate).
 
 ```
 pip install -r requirements.txt pytest
 python -m pytest
 ```
 
-Die Tests laden wie die Kamera echte Dateien per FTP hoch. Sie prüfen, dass nur
-vollständige Dateien und nur die ausgewählten Typen im Lightroom-Ordner landen.
+## Sicherheit
+
+Ohne FTPS gehen Bilder und Passwort **unverschlüsselt** durchs WLAN. Nutze
+dann nur dein eigenes Netz oder den Laptop-Hotspot. Die Oberfläche ist
+standardmäßig nur auf dem Rechner selbst erreichbar.

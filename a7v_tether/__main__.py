@@ -3,88 +3,91 @@
 from __future__ import annotations
 
 import logging
-import socket
 import sys
+import threading
+import webbrowser
 
-from .config import parse_args
-from .importer import Importer
-from .server import build_server
+from .app import App
+from .config import parse_args, validate
+from .server import local_ip_addresses
 
 log = logging.getLogger("a7v_tether")
 
 
-def local_ip_addresses() -> list:
-    """Best-effort list of this computer's LAN IPv4 addresses."""
-    ips = []
-    try:
-        # No packet is sent; this only asks the OS which interface it would use.
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.connect(("192.0.2.1", 9))
-            ips.append(s.getsockname()[0])
-    except OSError:
-        pass
-    try:
-        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
-            ip = info[4][0]
-            if ip not in ips and not ip.startswith("127."):
-                ips.append(ip)
-    except OSError:
-        pass
-    return ips or ["<IP dieses Rechners>"]
-
-
 def main(argv=None) -> int:
-    try:
-        cfg = parse_args(argv)
-    except (ValueError, OSError) as exc:
-        print(f"Konfigurationsfehler: {exc}", file=sys.stderr)
-        return 2
-
+    args = parse_args(argv)
     logging.basicConfig(
-        level=logging.DEBUG if cfg.verbose else logging.INFO,
-        format="%(asctime)s  %(message)s",
+        level=logging.DEBUG if args.verbose else logging.INFO,
+        format="%(asctime)s  %(levelname)-7s %(message)s",
         datefmt="%H:%M:%S",
     )
-    if not cfg.verbose:
+    logging.getLogger("a7v_tether").setLevel(logging.DEBUG)
+    logging.getLogger().handlers[0].setLevel(logging.DEBUG if args.verbose else logging.INFO)
+    if not args.verbose:
         logging.getLogger("pyftpdlib").setLevel(logging.WARNING)
 
-    importer = Importer(cfg.watch_dir, cfg.extensions, cfg.backup_dir).start()
-    try:
-        server = build_server(cfg, importer)
-    except PermissionError:
-        print(
-            f"Port {cfg.port} ist nicht erlaubt. Mit Admin-Rechten starten oder einen Port ≥1024 "
-            f"wählen (z.B. --port 2121) und denselben Port in der Kamera eintragen.",
-            file=sys.stderr,
-        )
-        return 1
-    except OSError as exc:
-        print(f"FTP-Server konnte nicht starten: {exc}", file=sys.stderr)
-        return 1
+    app = App(args.data_dir)
+    overrides = {}
+    if args.port:
+        overrides["ftp_port"] = args.port
+    if args.watch_dir:
+        overrides["watch_dir"] = args.watch_dir
+    if args.web_port:
+        overrides["web_port"] = args.web_port
+    if overrides:
+        candidate = app.settings.copy()
+        candidate.update(overrides)
+        errors = validate(candidate)
+        if errors:
+            for k, v in errors.items():
+                print(f"Ungültig: {k}: {v}", file=sys.stderr)
+            return 2
+        app.settings.update(overrides)
+        app.store.save(app.settings)
 
-    ips = ", ".join(local_ip_addresses())
+    app.start()
+    s = app.settings
+    ips = ", ".join(local_ip_addresses()) or "<keine Netzwerkverbindung>"
+
+    web = None
+    if not args.headless:
+        from .webui import create_server
+
+        try:
+            web = create_server(app, s.web_port)
+        except OSError as exc:
+            print(f"Weboberfläche konnte nicht starten: {exc}", file=sys.stderr)
+            app.stop()
+            return 1
+        port = web.server_address[1]
+        app.web_url = f"http://127.0.0.1:{port}/"
+
     print(
         "\n"
-        "  Sony α7 V  →  Lightroom Classic   (WLAN-Tethering)\n"
-        "  ─────────────────────────────────────────────────\n"
-        f"  In der Kamera eintragen:  Host {ips}   Port {cfg.port}\n"
-        f"                            Benutzer '{cfg.user}'   Passwort '{cfg.password}'\n"
-        "                            Passivmodus EIN, Sicheres Protokoll AUS\n"
-        f"  Lightroom-Überwachungsordner: {cfg.watch_dir}\n"
-        f"  Eingangsordner (intern):      {cfg.staging_dir}\n"
-        + (f"  Sicherungskopien:             {cfg.backup_dir}\n" if cfg.backup_dir else "")
-        + f"  Dateitypen:                   {', '.join(e.upper() for e in cfg.extensions)}\n"
-        "  Beenden mit Strg+C\n"
+        "  Sony α7 V  →  Lightroom Classic   ·   a7v-tether\n"
+        "  ──────────────────────────────────────────────────\n"
+        f"  FTP:    {ips}  Port {s.ftp_port}   Benutzer '{s.ftp_user}'\n"
+        f"  Ordner: {s.watch_path}\n"
+        + (f"  App:    {app.web_url}\n" if app.web_url else "")
+        + (f"  Handy:  http://{local_ip_addresses()[0]}:{web.server_address[1]}/  (PIN {s.web_pin})\n"
+           if web and s.web_remote and local_ip_addresses() else "")
+        + "  Beenden mit Strg+C\n"
     )
 
     try:
-        server.serve_forever(handle_exit=False)
+        if web:
+            if s.open_browser and not args.no_browser:
+                threading.Timer(0.6, lambda: webbrowser.open(app.web_url)).start()
+            web.serve_forever(poll_interval=0.5)
+        else:
+            threading.Event().wait()
     except KeyboardInterrupt:
         pass
     finally:
-        log.info("Beende … (%d Bilder übergeben)", importer.imported_count)
-        server.close_all()
-        importer.stop()
+        log.info("Beende …")
+        app.stop()
+        if web:
+            web.server_close()
     return 0
 
 

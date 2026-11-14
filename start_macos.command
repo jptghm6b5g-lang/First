@@ -1,10 +1,9 @@
 #!/bin/bash
-# Sony α7 V -> Lightroom Classic WLAN-Tethering (macOS / Linux)
+# a7v Tether - Sony α7 V -> Lightroom Classic (macOS / Linux)
 cd "$(dirname "$0")" || exit 1
 if [ ! -d .venv ]; then
-    echo "Erstelle Python-Umgebung …"
+    echo "Einmalige Einrichtung …"
     python3 -m venv .venv || { echo "Python 3 nicht gefunden: https://www.python.org/downloads/"; read -r; exit 1; }
-    .venv/bin/python -m pip install --quiet -r requirements.txt
 fi
-[ -f config.toml ] || cp config.example.toml config.toml
+.venv/bin/python -m pip install --quiet --disable-pip-version-check -r requirements.txt
 exec .venv/bin/python -m a7v_tether "$@"
